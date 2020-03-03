@@ -1,0 +1,22 @@
+sudo: required
+services:
+  - docker
+
+before_install:
+  - docker build -t  Lesenyeho/react-test -f ./client/Dockerfile.dev ./client
+
+script:
+  -  docker run Lesenyeho/react-test npm test -- --coverage
+
+after_success:
+  - docker build -t Lesenyeho/multi-client ./client
+  - docker build -t Lesenyeho/multi-nginx ./nginx
+  - docker build -t Lesenyeho/multi-server ./server
+  - docker build -t Lesenyeho/multi-worker ./worker
+  # Log in to the docker CLI
+  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
+  # Take those images and push them to docker hub
+  - docker push Lesenyeho/multi-client
+  - docker push Lesenyeho/multi-nginx
+  - docker push Lesenyeho/multi-server
+  - docker push Lesenyeho/multi-worker
